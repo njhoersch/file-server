@@ -1,6 +1,14 @@
 var router = require("express").Router()
 var multer = require("multer")
 var fs = require("fs")
+var Pool = require("pg").Pool
+var db = new Pool({
+    user: "postgres",
+    host: "localhost",
+    database: "files",
+    password: "q",
+    port: 5432
+})
 
 var fileStorage = multer.diskStorage({
     destination: "files",
@@ -11,6 +19,15 @@ var fileStorage = multer.diskStorage({
 
 var fileUpload = multer({
     storage: fileStorage
+})
+
+router.get("/testdb", (req, res) => {
+    db.query("SELECT * FROM files", (error, results) => {
+        if (error) {
+            res.status(500).send("PG DB Error occured.")
+        }
+        res.status(200).json(results.rows)
+    })
 })
 
 router.post("/uploadFile", fileUpload.single("file"), (req, res) => {
@@ -32,7 +49,7 @@ router.get("/getFiles", (req, res) => {
             }
             entry = dir.readSync()
         }
-    
+
         dir.closeSync()
 
         res.status(200).send(entries)
@@ -53,7 +70,7 @@ router.get("/downloadFile", (req, res) => {
 
     try {
         var dir = fs.opendirSync("files")
-        
+
         var file = dir.readSync()
 
         while (file.name != fileName) {
