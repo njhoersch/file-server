@@ -30,32 +30,40 @@ router.get("/testdb", (req, res) => {
     })
 })
 
-router.post("/uploadFile", fileUpload.single("file"), (req, res) => {
+router.post("/uploadFile", fileUpload.single("file"), async (req, res) => {
+    if (req.body.fileType == null) {
+        res.status(400).send("Must provide fileType")
+        return
+    }
+
+    if (req.file == null) {
+        res.status(400).send("Must provide a file")
+    }
+    
+    try {
+        await db.query(
+            "INSERT INTO files (id, name, file_type) VALUES (DEFAULT, $1, $2);",
+            [
+                req.file.originalname,
+                req.body.fileType
+            ]
+        )
+    } catch (e) {
+        res.status(500).send("Error occured saving to database: " + e);
+    }
+
     res.send(req.file)
 }, (error, req, res, next) => {
     res.status(400).send({ error: error.message })
 })
 
-router.get("/getFiles", (req, res) => {
-    try {
-        var dir = fs.opendirSync("files")
-
-        var entries = []
-
-        var entry = dir.readSync()
-        while (entry != null) {
-            if (entry.name.charAt(0) != ".") {
-                entries.push(entry.name)
-            }
-            entry = dir.readSync()
+router.get("/getFiles", async (req, res) => {
+    db.query("SELECT name FROM files", (error, results) => {
+        if (error) {
+            res.status(500).send("PG DB Error occured.")
         }
-
-        dir.closeSync()
-
-        res.status(200).send(entries)
-    } catch(e) {
-        res.status(500).send(e)
-    }
+        res.status(200).json(results.rows)
+    })
 })
 
 router.get("/downloadFile", (req, res) => {
