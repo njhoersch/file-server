@@ -32,8 +32,13 @@ router.get("/testdb", (req, res) => {
 })
 
 router.post("/uploadFile", fileUpload.single("file"), async (req, res) => {
-    if (req.body.fileType == null) {
+    if (req.body.type == null) {
         res.status(400).send("Must provide fileType")
+        return
+    }
+
+    if (req.body.size == null) {
+        res.status(400).send("Must provide file size")
         return
     }
 
@@ -43,10 +48,11 @@ router.post("/uploadFile", fileUpload.single("file"), async (req, res) => {
     
     try {
         await db.query(
-            "INSERT INTO files (id, name, file_type) VALUES (DEFAULT, $1, $2);",
+            "INSERT INTO files (id, name, type, size) VALUES (DEFAULT, $1, $2, $3);",
             [
                 req.file.originalname,
-                req.body.fileType
+                req.body.type,
+                req.body.size
             ]
         )
     } catch (e) {
