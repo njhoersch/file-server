@@ -25,8 +25,9 @@ router.get("/testdb", (req, res) => {
     db.query("SELECT * FROM files", (error, results) => {
         if (error) {
             res.status(500).send("PG DB Error occured.")
+        } else {
+            res.status(200).json(results.rows)
         }
-        res.status(200).json(results.rows)
     })
 })
 
@@ -57,12 +58,13 @@ router.post("/uploadFile", fileUpload.single("file"), async (req, res) => {
     res.status(400).send({ error: error.message })
 })
 
-router.get("/getFiles", async (req, res) => {
-    db.query("SELECT name FROM files", (error, results) => {
+router.get("/getFiles", (req, res) => {
+    db.query("SELECT * FROM files", (error, results) => {
         if (error) {
-            res.status(500).send("PG DB Error occured.")
+            res.status(500).send("PG DB Error occured: " + error)
+        } else {
+            res.status(200).json(results.rows)
         }
-        res.status(200).json(results.rows)
     })
 })
 

@@ -9,6 +9,7 @@
   "author": "Nathan Hoersch",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.2",
     "multer": "^1.4.4",
     "pg": "^8.7.1"
